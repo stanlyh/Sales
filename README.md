@@ -18,6 +18,55 @@ Sales/
     └── Sales.iOS     # Proyecto iOS
 ```
 
+## Diagrama de Capas
+
+```mermaid
+graph TD
+    subgraph PRESENTACION["Capa de Presentación"]
+        BACKEND["Sales.Backend\nASP.NET MVC\nVistas Razor (CRUD Web)"]
+        MOBILE["Sales (Xamarin.Forms)\nProductsPage.xaml\nAndroid / iOS"]
+    end
+
+    subgraph LOGICA["Capa de Lógica de Aplicación (MVVM)"]
+        VM["ProductsViewModel\nMainViewModel\nBaseViewModel"]
+        SVC["ApiService\nHttpClient + Plugin.Connectivity"]
+    end
+
+    subgraph API["Capa de Servicios REST"]
+        APICTL["Sales.API\nASP.NET Web API\nProductsController\n/api/Products"]
+        AUTH["Autenticación\nASP.NET Identity\nOAuth 2.0 Bearer Token"]
+    end
+
+    subgraph DOMINIO["Capa de Dominio (Modelos Compartidos)"]
+        COMMON["Sales.Common\nProduct · Response&lt;T&gt;"]
+    end
+
+    subgraph DATOS["Capa de Acceso a Datos"]
+        CTX["Sales.Domain\nDataContext (EF6)\nDbSet&lt;Product&gt;"]
+        DB[("SQL Server\nBase de datos Sales")]
+    end
+
+    subgraph INFRA["Infraestructura Transversal"]
+        I18N["Localización\nes · en · it · pt"]
+        OT["Telemetría\nApplication Insights\nOpenTelemetry"]
+        MIG["Migraciones EF\nCode-First"]
+    end
+
+    BACKEND -->|"Lee/Escribe vía EF"| CTX
+    MOBILE -->|"Consume"| SVC
+    SVC -->|"HTTP REST"| APICTL
+    APICTL -->|"Protege con"| AUTH
+    APICTL -->|"Lee/Escribe vía EF"| CTX
+    VM -->|"Llama"| SVC
+    BACKEND -->|"Usa modelos de"| COMMON
+    APICTL -->|"Usa modelos de"| COMMON
+    SVC -->|"Deserializa con"| COMMON
+    CTX -->|"Persiste en"| DB
+    MOBILE -.->|"Soporta"| I18N
+    APICTL -.->|"Monitorizado por"| OT
+    CTX -.->|"Evoluciona con"| MIG
+```
+
 ## Proyectos
 
 ### Sales.Common
